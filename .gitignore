@@ -1,0 +1,133 @@
+.venv
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- C extensions ---
+*.so
+
+# --- Distribution / packaging ---
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- PyInstaller ---
+# Generated after PyInstaller builds
+# Usually in a build/ or dist/ folder
+*.manifest
+*.spec
+
+# --- Installer logs ---
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Unit test / coverage ---
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+pytestdebug.log
+
+# --- Translations ---
+*.mo
+*.pot
+
+# --- Django stuff ---
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# --- Flask stuff ---
+instance/
+.webassets-cache
+
+# --- Scrapy stuff ---
+.scrapy
+
+# --- Sphinx documentation ---
+docs/_build/
+doc/_build/
+
+# --- Jupyter Notebook ---
+.ipynb_checkpoints
+.jupyter/
+profile_default/
+ipython_config.py
+
+# --- pyenv ---
+.python-version
+
+# --- pipenv ---
+Pipfile.lock
+
+# --- Poetry ---
+poetry.lock
+.poetry/
+
+# --- virtualenv ---
+venv/
+ENV/
+env/
+env.bak/
+virtualenv/
+
+# --- Spyder IDE ---
+.spyderproject
+.spyproject
+
+# --- Rope project ---
+.ropeproject
+
+# --- VSCode ---
+.vscode/
+*.code-workspace
+
+# --- mypy / type checking ---
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# --- Pyre type checker ---
+.pyre/
+
+# --- Pyright ---
+.pyright/
+
+# --- Ruff ---
+.ruff_cache/
+
+# --- Logs ---
+*.log
+
+# --- OS / editor files ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
