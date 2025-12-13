@@ -17,59 +17,15 @@ import pandas as pd
 import numpy as np
 import re
 import requests
+from bpe_tokenizer import BPETokenizer
 
 
 # BPE TOKENIEZER do stworzeniu regex'ów
-class BPETokenizer:
-    def __init__(self, vocab_size=50):
-        self.vocab_size = vocab_size
-
-    def get_vocab(self, corpus):
-        vocab = defaultdict(int)
-        for word in corpus:
-            vocab[' '.join(list(word)) + ' -'] += 1
-        return vocab
-
-    def get_stats(self, vocab):
-        stats = defaultdict(int)
-        for word, freq in vocab.items():
-            symbols = word.split()
-            for i in range(len(symbols) - 1):
-                stats[(symbols[i], symbols[i+1])] += freq
-        return stats
-
-    def merge_pair(self, pair, vocab):
-        bigram = ' '.join(pair)
-        replacement = ''.join(pair)
-
-        new_vocab = {}
-        pattern = re.compile(r'(?<!\S)' + bigram + r'(?!\S)')
-
-        for word, freq in vocab.items():
-            new_word = pattern.sub(replacement, word)
-            new_vocab[new_word] = freq
-
-        return new_vocab
-
-    def fit(self, corpus):
-        vocab = self.get_vocab(corpus)
-        bpe_codes = {}
-
-        for _ in range(self.vocab_size):
-            stats = self.get_stats(vocab)
-            if not stats:
-                break
-
-            best_pair = max(stats, key=stats.get)
-            bpe_codes[best_pair] = stats[best_pair]
-
-            vocab = self.merge_pair(best_pair, vocab)
-
-        return bpe_codes
 
 
 def transform_to_regexes(bpe_codes):
-    regexes = [re.compile("".join(pattern).replace("-", "")) for pattern in bpe_codes]
+    regexes = [re.compile("".join(pattern).replace("-", ""))
+               for pattern in bpe_codes]
     return regexes
 
 
@@ -91,7 +47,8 @@ def extract_features_for_seq(seq, cut_index, regexes):
     return features
 
 
-response = requests.get('https://staff.elka.pw.edu.pl/~rbiedrzy/UMA/spliceDTrainKIS.dat')
+response = requests.get(
+    'https://staff.elka.pw.edu.pl/~rbiedrzy/UMA/spliceDTrainKIS.dat')
 all_lines = response.text.split('\n')
 
 split_index = all_lines[0]
@@ -102,7 +59,8 @@ dataset = {value: label for value, label in zip(dna_values, dna_labels)}
 
 tokenizer = BPETokenizer(100)
 # Szukamy schematów często występujących w klasie pozytywnej
-bpe_codes = tokenizer.fit([value for value, label in dataset.items() if int(label) == 1])
+bpe_codes = tokenizer.fit(
+    [value for value, label in dataset.items() if int(label) == 1])
 regexes = transform_to_regexes(bpe_codes)
 # @TODO: DO EWENTUALNEJ GENERALIZACJI REGUŁ
 # sorted_regexes = sorted(regexes, key=lambda x : len(x))
@@ -117,7 +75,7 @@ regexes = transform_to_regexes(bpe_codes)
 # Jeśli pattern pojawia się w negatywie, drzewo nauczy się, że sam pattern nie wystarczy, może wziąć pod uwagę inne patterny lub pozycje.
 rows = []
 labels = []
-for seq , label in dataset.items():
+for seq, label in dataset.items():
     rows.append(extract_features_for_seq(seq, 0, regexes))
     labels.append(label)
 X = pd.DataFrame(rows)
@@ -141,7 +99,8 @@ tree_rules = export_text(clf, feature_names=list(Xsel.columns))
 # print("Tree structure")
 # print(tree_rules)
 
-Xtr_mi, Xte_mi, ytr_mi, yte_mi = train_test_split(Xsel_with_mi, y, test_size=0.2, stratify=y)
+Xtr_mi, Xte_mi, ytr_mi, yte_mi = train_test_split(
+    Xsel_with_mi, y, test_size=0.2, stratify=y)
 clf = DecisionTreeClassifier(max_depth=6, min_samples_leaf=10)
 clf.fit(Xtr_mi, ytr_mi)
 print("acc train mi:", clf.score(Xtr_mi, ytr_mi))
