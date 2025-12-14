@@ -16,17 +16,8 @@ from collections import defaultdict
 import pandas as pd
 import numpy as np
 import re
-import requests
+import datasets
 from bpe_tokenizer import BPETokenizer
-
-
-# BPE TOKENIEZER do stworzeniu regex'ów
-
-
-def transform_to_regexes(bpe_codes):
-    regexes = [re.compile("".join(pattern).replace("-", ""))
-               for pattern in bpe_codes]
-    return regexes
 
 
 def extract_features_for_seq(seq, cut_index, regexes):
@@ -47,21 +38,12 @@ def extract_features_for_seq(seq, cut_index, regexes):
     return features
 
 
-response = requests.get(
-    'https://staff.elka.pw.edu.pl/~rbiedrzy/UMA/spliceDTrainKIS.dat')
-all_lines = response.text.split('\n')
-
-split_index = all_lines[0]
-dna_values = all_lines[2:-1:2]
-dna_labels = all_lines[1:-1:2]
-
-dataset = {value: label for value, label in zip(dna_values, dna_labels)}
+X, y, split_index = datasets.DonorsDataset.load()
 
 tokenizer = BPETokenizer(100)
 # Szukamy schematów często występujących w klasie pozytywnej
-bpe_codes = tokenizer.fit(
-    [value for value, label in dataset.items() if int(label) == 1])
-regexes = transform_to_regexes(bpe_codes)
+regexes = tokenizer.create_regexes(
+    [value for value, label in zip(X, y) if int(label) == 1])
 # @TODO: DO EWENTUALNEJ GENERALIZACJI REGUŁ
 # sorted_regexes = sorted(regexes, key=lambda x : len(x))
 
@@ -75,7 +57,7 @@ regexes = transform_to_regexes(bpe_codes)
 # Jeśli pattern pojawia się w negatywie, drzewo nauczy się, że sam pattern nie wystarczy, może wziąć pod uwagę inne patterny lub pozycje.
 rows = []
 labels = []
-for seq, label in dataset.items():
+for seq, label in zip(X, y):
     rows.append(extract_features_for_seq(seq, 0, regexes))
     labels.append(label)
 X = pd.DataFrame(rows)
@@ -96,8 +78,8 @@ clf.fit(Xtr, ytr)
 print("acc train:", clf.score(Xtr, ytr))
 print("acc test:", clf.score(Xte, yte))
 tree_rules = export_text(clf, feature_names=list(Xsel.columns))
-# print("Tree structure")
-# print(tree_rules)
+print("Tree structure")
+print(tree_rules)
 
 Xtr_mi, Xte_mi, ytr_mi, yte_mi = train_test_split(
     Xsel_with_mi, y, test_size=0.2, stratify=y)
