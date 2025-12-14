@@ -48,3 +48,11 @@ class BPETokenizer:
             vocab = self.merge_pair(best_pair, vocab)
 
         return bpe_codes
+
+    def create_regexes(self, corpus):
+        return self.transform_to_regexes(self.fit(corpus))
+
+    def transform_to_regexes(self, bpe_codes):
+        regexes = [re.compile("".join(pattern).replace("-", ""))
+                   for pattern in bpe_codes]
+        return regexes
