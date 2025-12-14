@@ -37,10 +37,6 @@ class RegexDecisionTree:
         return X
 
     def _extract_features_for_seq(self, seq, cut_index):
-        """
-        Create dataset containing pattern@offset attributes from regexes
-        to fit to decision tree
-        """
         features = {}
         for i, rg in enumerate(self.regexes):
             L = len(rg.pattern)
@@ -170,26 +166,28 @@ class RegexDecisionTree:
     def __str__(self):
         if not hasattr(self, "tree_"):
             return "RegexDecisionTree(not fitted)"
-        return self._str_recursive(self.tree_)
+        return self._str_recursive(self.tree_, depth=0)
 
-    def _str_recursive(self, node, depth=0):
-        indent = "  " * depth
+    def _str_recursive(self, node, depth):
+        indent = "|   " * depth
+
         if node.regex is None:
-            desc = f"{indent}Leaf: class={node.predicted_class}"
-        else:
-            desc = (
-                f"{indent}Node: pattern='{node.regex.pattern}', "
-                f"offset={node.offset}, "
-                f"predicted_class={node.predicted_class}"
-            )
+            return f"{indent}|--- class: {node.predicted_class}"
 
-        lines = [desc]
+        feature_desc = f"pat='{node.regex.pattern}', offset={node.offset}"
 
-        if node.left is not None:
-            lines.append(f"{indent}  [False]")
-            lines.append(self._str_recursive(node.left, depth + 2))
-        if node.right is not None:
-            lines.append(f"{indent}  [True]")
-            lines.append(self._str_recursive(node.right, depth + 2))
+        lines = []
+        lines.append(
+            f"{indent}|--- {feature_desc} == False"
+        )
+        lines.append(
+            self._str_recursive(node.left, depth + 1)
+        )
+        lines.append(
+            f"{indent}|--- {feature_desc} == True"
+        )
+        lines.append(
+            self._str_recursive(node.right, depth + 1)
+        )
 
         return "\n".join(lines)
