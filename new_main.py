@@ -11,6 +11,8 @@ tokenizer = BPETokenizer(100)
 regexes = tokenizer.create_regexes(
     [value for value, label in zip(X, y) if int(label) == 1])
 
+# BPETokenizer.save_regexes_to_file(regexes, "regexes/Donors_100.txt")
+# regexes = BPETokenizer.load_regexes_from_file("regexes/Donors_100.txt")
 
 Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, stratify=y)
 clf = RegexDecisionTree(regexes, max_depth=6,

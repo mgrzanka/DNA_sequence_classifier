@@ -56,3 +56,19 @@ class BPETokenizer:
         regexes = [re.compile("".join(pattern).replace("-", ""))
                    for pattern in bpe_codes]
         return regexes
+
+    @staticmethod
+    def save_regexes_to_file(regexes, filepath):
+        with open(filepath, "w", encoding="utf-8") as f:
+            for regex in regexes:
+                f.write(regex.pattern + "\n")
+
+    @staticmethod
+    def load_regexes_from_file(filepath):
+        regexes = []
+        with open(filepath, "r", encoding="utf-8") as f:
+            for line in f:
+                pattern = line.strip()
+                if pattern:
+                    regexes.append(re.compile(pattern))
+        return regexes
