@@ -1,3 +1,4 @@
+
 class ConfusionMatrix:
     def __init__(self, y_true, y_pred):
         self.TP = 0
@@ -41,3 +42,10 @@ class ConfusionMatrix:
             f"TN: {self.TN} | FP: {self.FP}\n"
             f"FN: {self.FN} | TP: {self.TP}"
         )
+
+    def __add__(self, other: "ConfusionMatrix"):
+        self.TP += other.TP
+        self.TN += other.TN
+        self.FN += other.FN
+        self.FP += other.FP
+        return self

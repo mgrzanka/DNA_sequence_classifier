@@ -1,5 +1,5 @@
 import pytest
-from confusion_matrix import ConfusionMatrix
+from src.modeling.confusion_matrix import ConfusionMatrix
 
 
 def test_confusion_matrix_counts():

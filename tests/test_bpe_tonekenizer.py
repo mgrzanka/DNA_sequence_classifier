@@ -1,4 +1,6 @@
-from bpe_tokenizer import BPETokenizer
+import pytest
+
+from src.dataset.bpe_tokenizer import BPETokenizer
 
 
 def test_get_vocab_basic():
