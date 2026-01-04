@@ -29,5 +29,3 @@ class AppConfig:
     )
 
     WANDB_API_KEY = os.getenv("WANDB_API_KEY", "")
-    if not WANDB_API_KEY:
-        raise Exception("No WANDB_API_KEY in .env file")
