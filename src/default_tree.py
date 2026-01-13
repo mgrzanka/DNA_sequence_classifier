@@ -29,69 +29,75 @@ def dna_one_hot_flat(sequences):
 
 
 app_config = AppConfig()
-config = app_config.DONORS
-val_cm = None
-regex_val_cm = None
-train_cm = None
-regex_train_cm = None
+dataset_configs = {
+    "donors": app_config.DONORS,
+    "acceptors": app_config.ACCEPTORS
+}
 
-sequences, labels, split_index = DatasetLoader.load(
-    save_path=config.dataset_path,
-    url=config.url
-)
+for dataset_name, config in dataset_configs.items():
+    print(f"--Running default tree comparison for {dataset_name}--")
 
-sequences_np = np.array(sequences, dtype=object)
-kf = KFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE_SPLIT)
+    val_cm = None
+    regex_val_cm = None
+    train_cm = None
+    regex_train_cm = None
 
-for index, (train_index, val_index) in enumerate(kf.split(sequences_np)):
-    X_train = sequences_np[train_index].tolist()
-    X_val = sequences_np[val_index].tolist()
-    y_train, y_val = labels[train_index], labels[val_index]
-
-    # Tree without regexes
-    X_train_transformed = dna_one_hot_flat(X_train)
-    X_val_transformed = dna_one_hot_flat(X_val)
-
-    clf_default = DecisionTreeClassifier(
-        max_depth=MAX_DEPTH, random_state=RANDOM_STATE_CLF)
-    clf_default.fit(X_train_transformed, y_train)
-    preds_train = clf_default.predict(X_train_transformed)
-    preds_val = clf_default.predict(X_val_transformed)
-    if val_cm is None or train_cm is None:
-        val_cm = ConfusionMatrix(y_val, preds_val)
-        train_cm = ConfusionMatrix(y_train, preds_train)
-    else:
-        val_cm += ConfusionMatrix(y_val, preds_val)
-        train_cm += ConfusionMatrix(y_train, preds_train)
-
-    # RegexDecisionTree
-    tokenizer = BPETokenizer(100)
-    extractor = RegexFeatureExtractor(tokenizer)
-    regexes = extractor.load_regexes(
-        save_path=config.regex_path,
-        dna_labels=y_train,
-        dna_values=X_train,
-        force_regex_recreation=True
+    sequences, labels, split_index = DatasetLoader.load(
+        save_path=config.dataset_path,
+        url=config.url
     )
+    sequences_np = np.array(sequences, dtype=object)
+    kf = KFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE_SPLIT)
 
-    X_train_reg = extractor.transform(X_train)
-    X_val_reg = extractor.transform(X_val)
-    clf = RegexDecisionTree(regexes=regexes,
-                            seq_length=len(sequences[0]),
-                            max_depth=MAX_DEPTH)
-    clf.fit(X_train_reg, y_train)
-    preds_val = clf.predict(X_val)
-    preds_train = clf.predict(X_train)
-    if regex_val_cm is None or regex_train_cm is None:
-        regex_val_cm = ConfusionMatrix(y_val, preds_val)
-        regex_train_cm = ConfusionMatrix(y_train, preds_train)
-    else:
-        regex_val_cm = ConfusionMatrix(y_val, preds_val)
-        regex_train_cm = ConfusionMatrix(y_train, preds_train)
+    for index, (train_index, val_index) in enumerate(kf.split(sequences_np)):
+        X_train = sequences_np[train_index].tolist()
+        X_val = sequences_np[val_index].tolist()
+        y_train, y_val = labels[train_index], labels[val_index]
 
-print("Tree without regexes")
-print(
-    f"Train F1: {train_cm.f1_score():.5f}, Val F1: {val_cm.f1_score():.5f}")
-print("Regex Tree")
-print(
-    f"Train F1: {regex_train_cm.f1_score():.5f}, Val F1: {regex_val_cm.f1_score():.5f}")
+        # Tree without regexes
+        X_train_transformed = dna_one_hot_flat(X_train)
+        X_val_transformed = dna_one_hot_flat(X_val)
+
+        clf_default = DecisionTreeClassifier(
+            max_depth=MAX_DEPTH, random_state=RANDOM_STATE_CLF)
+        clf_default.fit(X_train_transformed, y_train)
+        preds_train = clf_default.predict(X_train_transformed)
+        preds_val = clf_default.predict(X_val_transformed)
+        if val_cm is None or train_cm is None:
+            val_cm = ConfusionMatrix(y_val, preds_val)
+            train_cm = ConfusionMatrix(y_train, preds_train)
+        else:
+            val_cm += ConfusionMatrix(y_val, preds_val)
+            train_cm += ConfusionMatrix(y_train, preds_train)
+
+        # RegexDecisionTree
+        tokenizer = BPETokenizer(100)
+        extractor = RegexFeatureExtractor(tokenizer)
+        regexes = extractor.load_regexes(
+            save_path=config.regex_path,
+            dna_labels=y_train,
+            dna_values=X_train,
+            force_regex_recreation=True
+        )
+
+        X_train_reg = extractor.transform(X_train)
+        X_val_reg = extractor.transform(X_val)
+        clf = RegexDecisionTree(regexes=regexes,
+                                seq_length=len(sequences[0]),
+                                max_depth=MAX_DEPTH)
+        clf.fit(X_train_reg, y_train)
+        preds_val = clf.predict(X_val)
+        preds_train = clf.predict(X_train)
+        if regex_val_cm is None or regex_train_cm is None:
+            regex_val_cm = ConfusionMatrix(y_val, preds_val)
+            regex_train_cm = ConfusionMatrix(y_train, preds_train)
+        else:
+            regex_val_cm += ConfusionMatrix(y_val, preds_val)
+            regex_train_cm += ConfusionMatrix(y_train, preds_train)
+
+    print("Tree without regexes")
+    print(
+        f"Train F1: {train_cm.f1_score():.5f}, Val F1: {val_cm.f1_score():.5f}")    #type: ignore
+    print("Regex Tree")
+    print(
+        f"Train F1: {regex_train_cm.f1_score():.5f}, Val F1: {regex_val_cm.f1_score():.5f}")    #type: ignore
